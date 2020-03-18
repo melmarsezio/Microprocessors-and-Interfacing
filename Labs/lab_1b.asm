@@ -7,22 +7,22 @@
 ;pseudo-code:
 ; int A, B
 ; while A not equal to B
-;	  then if A > B
-;		       then A = A - B
-;		   else
-;		       then B = B - A
+;	then if A > B
+;		then A = A - B
+;	else
+;		then B = B - A
 ;
 
 .include "m2560def.inc"
-.def AL = r16		;low byte of A
-.def AH = r17		;high byte of A
-.def BL = r18		;low byte of B
-.def BH = r19		;high byte of B
+.def AL = r16			;low byte of A
+.def AH = r17			;high byte of A
+.def BL = r18			;low byte of B
+.def BH = r19			;high byte of B
 
-;ldi AL, low(0x1000)	;for testing purpose
-;ldi AH, high(0x1000)	;load magic number into A,B registers
-;ldi BL, low(0x0400)	;
-;ldi BH, high(0x0400)	;
+;ldi AL, low(0x1000)		;for testing purpose
+;ldi AH, high(0x1000)		;load magic number into A,B registers
+;ldi BL, low(0x0400)		;
+;ldi BH, high(0x0400)		;
 
 loop:
 	cp BL, AL		;compare low bytes of A and B
