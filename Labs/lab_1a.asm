@@ -12,7 +12,7 @@
 ; character A, B
 ; integer result
 ; if leftmost bit is 1
-; 	then A = A - '0'	//it's hexadecimal
+; 	then A = A - '0'		//it's hexadecimal
 ; 		B = B - '0'
 ;  		if A > 9		// A is a letter
 ; 			then A = A - 7
@@ -20,7 +20,7 @@
 ; 			then B = B - 7
 ; 		result = B
 ; 		result = result + (A<<4)
-; 	else A = A - '0'//it's decimal
+; 	else A = A - '0'		//it's decimal
 ; 		 B = B - '0'
 ; 		 result = B
 ; 		 result = result + A * 10
@@ -39,12 +39,12 @@
 
 main:
 	mov char_A, input_A		;copy input_A into char_A
-	lsl char_A				;clear 7th bit of char_A
-	lsr char_A				;
+	lsl char_A			;clear 7th bit of char_A
+	lsr char_A			;
 	mov char_B, input_B		;copy input_B into char_B
 	cpi input_A, 0x80		;compare input_A with 10000000 to see if its hexa or decimal
-	brsh HEXA				;if same or higher, its hexadecimal
-	rjmp DECI				;otherwise, its decimal
+	brsh HEXA			;if same or higher, its hexadecimal
+	rjmp DECI			;otherwise, its decimal
 
 HEXA:
 	subi char_A, 0x30		;subtract char_A by ascii of '0' to get distance to '0'
@@ -53,7 +53,7 @@ HEXA:
 
 CHECK_A:
 	cpi char_A, 0x0A		;if char_A is greater or equal to 0x0A
-	brsh LETT_A				;convert that value into hexadecimal
+	brsh LETT_A			;convert that value into hexadecimal
 	rjmp CHECK_B			;otherwise, check if char_B is letter (A~F)
 
 LETT_A:
@@ -62,21 +62,21 @@ LETT_A:
 
 CHECK_B:
 	cpi char_B, 0x0A		;same as CHECK_A
-	brsh LETT_B				;same as LETT_A
-	rjmp CALC				;otherwise, jump to branch CALC to sum up two digits
+	brsh LETT_B			;same as LETT_A
+	rjmp CALC			;otherwise, jump to branch CALC to sum up two digits
 
 LETT_B:
 	subi char_B, 0x07		;same as LETT_A
-	rjmp CALC				;otherwise, jump to branch CALC to sum up two digits
+	rjmp CALC			;otherwise, jump to branch CALC to sum up two digits
 
 CALC:
-	lsl char_A				;left shift char_A 4 times
-	lsl char_A				;so char_A is on high bits
-	lsl char_A				;
-	lsl char_A				;
+	lsl char_A			;left shift char_A 4 times
+	lsl char_A			;so char_A is on high bits
+	lsl char_A			;
+	lsl char_A			;
 	mov result, char_A		;copy char_A to result (with char_A << 4)
 	add result, char_B		;add char_B to the result (char_B stays at low bits)
-	rjmp END				;finish
+	rjmp END			;finish
 
 DECI:
 	subi char_A, 0x30		;subtract char_A by ascii of '0' to get distance to '0'
@@ -85,7 +85,7 @@ DECI:
 	ldi char_B, 0x0A		;load char_B  with 10(since we cope char_B into result already, char_B is spared)
 	mul char_A, char_B		;char_A times 10
 	add result, R0			;add the multiplication to the result
-	rjmp END				;finish
+	rjmp END			;finish
 
 END:
-	rjmp END				;finish
+	rjmp END			;finish
