@@ -1,6 +1,6 @@
 # Microprocessors-and-Interfacing
 All projects and labs of Course COMP9032 Microprocessors & Interfacing will be pushed here.  
-Materials: AVR studio development environment, AVR microcontroller board & Arduino Mega 2560 R3
+Materials: AtmelStudio - AVR studio development environment, AVR microcontroller board & Arduino Mega 2560 R3
 ### Topics covered in this course:
 + Microprocessor Hardware Structures
 + Data Representation
