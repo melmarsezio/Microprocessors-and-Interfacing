@@ -14,20 +14,20 @@
 .def row    =r16		; current row number
 .def col    =r17		; current column number
 .def rmask  =r18		; mask for current row
-.def cmask	=r19		; mask for current column
-.def temp1	=r20
+.def cmask  =r19		; mask for current column
+.def temp1  =r20
 .def temp2  =r21
-.def result = r22
-.def B = r23
-.def carry = r24
-.def overflow = r26
-.def temp3 = r27
+.def result =r22
+.def B =r23
+.def carry  =r24
+.def overflow =r26
+.def temp3  =r27
 
 
-.equ PORTLDIR =0xF0			; use PortL for input/output from keypad: PL7-4, output, PL3-0, input
+.equ PORTLDIR = 0xF0		; use PortL for input/output from keypad: PL7-4, output, PL3-0, input
 .equ INITCOLMASK = 0xEF		; scan from the leftmost column, the value to mask output
 .equ INITROWMASK = 0x01		; scan from the bottom row
-.equ ROWMASK  =0x0F			; low four bits are output from the keypad. This value mask the high 4 bits.
+.equ ROWMASK  = 0x0F		; low four bits are output from the keypad. This value mask the high 4 bits.
 
 
 .macro do_lcd_command		; sent command to LCD
@@ -36,7 +36,7 @@
 	rcall lcd_wait
 .endmacro
 
-.macro do_lcd_data			; sent data to LCD
+.macro do_lcd_data		; sent data to LCD
 	mov r25, @0
 	rcall lcd_data
 	rcall lcd_wait
@@ -45,16 +45,16 @@
 .macro Rem; A, B, C		; calculate remainder, A-> A%B, C-> A/B, B is unchanged
 	ldi @2, 0
 Loop:
-	cpi @0, @1			; Compare A & B
-	BRLO EndRem			; Jump to finish if A < B
-	subi @0, @1			; If A >= B: A =  A - B
-	inc @2				; Increase C
-	rjmp Loop			; Loop back
-EndRem:					; when Rem finish, A will be A%B, C will be A/B
+	cpi @0, @1		; Compare A & B
+	BRLO EndRem		; Jump to finish if A < B
+	subi @0, @1		; If A >= B: A =  A - B
+	inc @2			; Increase C
+	rjmp Loop		; Loop back
+EndRem:				; when Rem finish, A will be A%B, C will be A/B
 .endmacro
 
 .macro display_number
-	push temp1			; save temp1 and temp2 in case they still hold useful values
+	push temp1		; save temp1 and temp2 in case they still hold useful values
 	push temp2
 	mov temp1, @0
 	cpi temp1, 100
@@ -82,7 +82,7 @@ digit_2:
 	do_lcd_data temp1
 	rjmp display_finish
 display_finish:
-	pop temp2			; resume temp2 and temp1 from stack
+	pop temp2		; resume temp2 and temp1 from stack
 	pop temp1
 	rjmp display_end
 display_end:
@@ -92,23 +92,23 @@ rjmp RESET
 
 RESET:
 	;reset keypad
-	ldi temp1, PORTLDIR			; columns are outputs, rows are inputs
-	sts	DDRL, temp1
-	ser temp1					; PORTC is outputs
+	ldi temp1, PORTLDIR	; columns are outputs, rows are inputs
+	sts DDRL, temp1
+	ser temp1		; PORTC is outputs
 	out DDRC, temp1
 	clr temp1
-	out PORTC, temp1			; empty the LED
-	clr result					; reset all operands and carry
+	out PORTC, temp1	; empty the LED
+	clr result		; reset all operands and carry
 	clr B
 	clr carry
 	clr overflow
 
 	;reset LCD
 	ser r25
-	out DDRF, r25				; set Port A & F as output Port
+	out DDRF, r25		; set Port A & F as output Port
 	out DDRA, r25
 	clr r25
-	out PORTF, r25				; empty Port A & F
+	out PORTF, r25		; empty Port A & F
 	out PORTA, r25
 	; initialize LCD
 	do_lcd_command 0b00111000 ; 2x5x7
@@ -123,90 +123,89 @@ RESET:
 	do_lcd_command 0b00001100 ; Cursor on, bar, no blink
 
 main:
-	ldi cmask, INITCOLMASK		; initial column mask
-	clr	col						; initial column
+	ldi cmask, INITCOLMASK	; initial column mask
+	clr col			; initial column
 colloop:
 	cpi col, 4
 	breq main
-	sts	PORTL, cmask			; set column to mask value (one column off)
+	sts PORTL, cmask	; set column to mask value (one column off)
 	ldi temp1, 0xFF
 delay:
 	dec temp1
 	brne delay
 
-	lds	temp1, PINL				; read PORTL
+	lds temp1, PINL		; read PORTL
 	andi temp1, ROWMASK
-	cpi temp1, 0xF				; check if any rows are on
-	breq nextcol
-								; if yes, find which row is on
-	ldi rmask, INITROWMASK		; initialise row check
-	clr	row						; initial row
+	cpi temp1, 0xF		; check if any rows are on
+	breq nextcol		; if yes, find which row is on
+	ldi rmask, INITROWMASK	; initialise row check
+	clr row			; initial row
 rowloop:
 	cpi row, 4
 	breq nextcol
 	mov temp2, temp1
-	and temp2, rmask			; check masked bit
-	breq convert 				; if bit is clear, convert the bitcode
-	inc row						; else move to the next row
-	lsl rmask					; shift the mask to the next bit
+	and temp2, rmask	; check masked bit
+	breq convert 		; if bit is clear, convert the bitcode
+	inc row			; else move to the next row
+	lsl rmask		; shift the mask to the next bit
 	jmp rowloop
 nextcol:
-	lsl cmask					; else get new mask by shifting and
-	inc col						; increment column value
-	jmp colloop					; and check the next column
+	lsl cmask		; else get new mask by shifting and
+	inc col			; increment column value
+	jmp colloop		; and check the next column
 
 convert:
-	cpi col, 3					; if col is 3, we have letters(not useful here) and we jump back to main
+	cpi col, 3		; if col is 3, we have letters(not useful here) and we jump back to main
 	breq letters
-	cpi row, 3					; if row is 3 we have a symbol or 0
+	cpi row, 3		; if row is 3 we have a symbol or 0
 	breq symbols
 
-	mov temp1, row				; otherwise we have a number in 1-9
+	mov temp1, row		; otherwise we have a number in 1-9
 	lsl temp1
-	add temp1, row				; temp1 = row * 3
-	add temp1, col				; add the column address to get the value
-	subi temp1, -1				; add the value of character '0'
+	add temp1, row		; temp1 = row * 3
+	add temp1, col		; add the column address to get the value
+	subi temp1, -1		; add the value of character '0'
 	mov temp2, temp1
 	subi temp2, -'0'
 	do_lcd_data temp2
 
 	mov temp3, result
-	mov temp2, result			; result times 10
+	mov temp2, result	; result times 10
 	lsl result
 	lsl result
 	lsl result
 	lsl temp2
 	add result, temp2
-	add result, temp1			; add current number to the result
+	add result, temp1	; add current number to the result
 	cp result, temp3
 	brlo num_OVF
 	jmp convert_end
 
 letters:
 	do_lcd_command 0b00000001	; clear LED
-	clr result					; reset numbers if 'A','B','C' or 'D' is pressed
+	clr result		; reset numbers if 'A','B','C' or 'D' is pressed
 	clr B
 	clr carry
 	clr overflow
 	jmp convert_end
 symbols:
-	cpi col, 0					; check if we have a star
+	cpi col, 0		; check if we have a star
 	breq star
-	cpi col, 1					; or if we have zero
+	cpi col, 1		; or if we have zero
 	breq zero
 	jmp equal
 
 star:
 	ldi temp2, '*'
 	do_lcd_data temp2
-	mov B, result				; save result to B
-	clr result					; clear result, get ready for next number
+	mov B, result		; save result to B
+	clr result		; clear result, get ready for next number
 	jmp convert_end
 zero:
 	ldi temp2, '0'
 	do_lcd_data temp2
 	mov temp3, result
-	mov temp2, result			; result times 10
+	mov temp2, result	; result times 10
 	lsl result
 	lsl result
 	lsl result
@@ -223,7 +222,7 @@ num_OVF:
 equal:
 	ldi temp2, '='
 	do_lcd_data temp2
-	push r0						; otherwise: we have '#'
+	push r0			; otherwise: we have '#'
 	push r1
 	mul result, B
 	mov result, r0
@@ -237,17 +236,17 @@ convert_end:
 	;display_number result		; display results on LEDS
 
 	
-	;jmp flash					; check carrys
+	;jmp flash			; check carrys
 	cpi overflow, 0
 	brne flash
 	cpi carry, 0
 	brne flash
 back:
-	rcall sleep_200ms			; delay for 0.4s
+	rcall sleep_200ms		; delay for 0.4s
 	rcall sleep_200ms
-	jmp main					; restart main loop
+	jmp main			; restart main loop
 
-flash:							; LED flash 3 times
+flash:					; LED flash 3 times
 	ser temp1
 	out PORTC, temp1
 	rcall sleep_200ms
@@ -358,7 +357,7 @@ lcd_data:
 	ret
 
 lcd_wait:
-	push r25			;save conflict register on stack
+	push r25		;save conflict register on stack
 	clr r25
 	out DDRF, r25		; set Port F as input port
 	out PORTF, r25
@@ -371,10 +370,10 @@ lcd_wait_loop:
     nop
 	in r25, PINF
 	lcd_clr LCD_E
-	sbrc r25, 7			; check if BF is 0
+	sbrc r25, 7		; check if BF is 0
 	rjmp lcd_wait_loop
 	lcd_clr LCD_RW
 	ser r25
 	out DDRF, r25
-	pop r25				;resume conflict register from stack
+	pop r25			;resume conflict register from stack
 	ret
